@@ -1,2 +1,4 @@
 /driver
 /User_Data
+/.pylintrc
+/test.py
