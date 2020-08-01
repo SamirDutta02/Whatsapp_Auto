@@ -1,6 +1,6 @@
 
 
-
+import schedule
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog, QTimeEdit
 import pandas as pd
@@ -17,6 +17,12 @@ import time
 import datetime
 import os
 import argparse
+
+import autoit
+
+
+
+
 
 #root = tk.Tk()
 #message_var=tk.StringVar(value='Place Your Message Here')
@@ -42,9 +48,11 @@ not_sent_contacts=[]
 not_sent_contacts_try=[]
 unsent_message=[]
 #unsent_message_try=[]
+status=[]
 message_inp_box= ''
 Schedule_msg =''
-date_time = datetime.datetime.now().strftime("%H.%M.%S-%d.%m.%y")
+num = 0
+date_time = datetime.datetime.now().strftime("%d.%m.%y")
 
 
 
@@ -112,10 +120,12 @@ class Ui_MainWindow(object):
         self.Schedule_msg.setFont(font)
         self.Schedule_msg.setObjectName("Schedule_msg")
 
+        #img btn
         self.Select_IMG = QtWidgets.QPushButton(self.centralwidget)
         self.Select_IMG.setGeometry(QtCore.QRect(200, 280, 81, 31))
         self.Select_IMG.setObjectName("Select_IMG")
 
+        #doc btn
         self.select_PDF = QtWidgets.QPushButton(self.centralwidget)
         self.select_PDF.setGeometry(QtCore.QRect(390, 280, 81, 31))
         self.select_PDF.setObjectName("select_PDF")
@@ -151,6 +161,8 @@ class Ui_MainWindow(object):
         self.text_submit.clicked.connect(self.getText)
         self.Send_now.clicked.connect(self.auto)
         self.Submit.clicked.connect(self.get_time)
+        self.Select_IMG.clicked.connect(self.get_img_path)
+        self.select_PDF.clicked.connect(self.get_doc_path)
 
 
 
@@ -169,11 +181,27 @@ class Ui_MainWindow(object):
         print(message_inp_box)
 
 
+    def get_img_path(self):
+        global imgname
+        imgname_path = QFileDialog.getOpenFileName()
+        imgname = imgname_path[0]
+        print(imgname)
+
+
+
+
+
+
+
+
+    def get_doc_path(self):
+        pass
+
 
 
 
     def getExcel(self):
-        global message_inp_box,unsaved_Contacts,message
+        global message_inp_box,unsaved_Contacts,message,raw_user_name
         
         print('hello')
         path = QFileDialog.getOpenFileName()
@@ -190,7 +218,11 @@ class Ui_MainWindow(object):
         user_name=[]
         for s in raw_user_name:
             user_name.append(s.replace(' ', '%20').replace('&','%26').replace('?', '%3F'))
-        
+
+        for n in range (0,len(user_name)):
+            status.append('pending')
+            print(status)
+
         if(message_inp_box== ''):
             message=[]
             for (r, x) in zip(raw_message,user_name):
@@ -207,6 +239,7 @@ class Ui_MainWindow(object):
                 #print(message)
             return unsaved_Contacts, message, user_name
 
+        
 
 
     
@@ -225,22 +258,71 @@ class Ui_MainWindow(object):
             browser.maximize_window()
             print("QR scanned")
 
-        def send_unsaved_contact_message(self):
+        def send_unsaved_contact_message():
             send = browser.find_element_by_xpath("//span[@data-testid='send']")
             send.click()
             return
 
 
-
+        
         def scheduler():
             while True:
                 schedule.run_pending()
                 time.sleep(1)
 
+        
+        def send_img():
+
+            clipButton = browser.find_element_by_xpath('//*[@id="main"]/header/div[3]/div/div[2]/div/span')
+            clipButton.click()
+            time.sleep(1)
+
+
+            mediaButton = browser.find_element_by_xpath('//*[@id="main"]/header/div[3]/div/div[2]/span/div/div/ul/li[1]/button')
+            mediaButton.click()
+            time.sleep(3)
+
+            image_path = os.getcwd() + "\\Media\\" + 'howareyou.jpg'
+
+            autoit.control_focus("Open", "Edit1")
+            autoit.control_set_text("Open", "Edit1", image_path)
+            autoit.control_click("Open", "Button1")
+
+            time.sleep(3)
+            whatsapp_send_button = browser.find_element_by_xpath('//*[@id="app"]/div/div/div[2]/div[2]/span/div/span/div/div/div[2]/span[2]/div/div/span')
+            whatsapp_send_button.click()
+        
+        
+        def send_doc():
+            global doc_filename
+            clipButton = browser.find_element_by_xpath('//*[@id="main"]/header/div[3]/div/div[2]/div/span')
+            clipButton.click()
+            time.sleep(1)
+
+            docButton = browser.find_element_by_xpath('//*[@id="main"]/header/div[3]/div/div[2]/span/div/div/ul/li[3]/button')
+            docButton.click()
+            time.sleep(1)
+
+            docPath = os.getcwd() + "\\Documents\\" + doc_filename
+
+            autoit.control_focus("Open", "Edit1")
+            autoit.control_set_text("Open", "Edit1", (docPath))
+            autoit.control_click("Open", "Button1")
+            time.sleep(3)
+            whatsapp_send_button = browser.find_element_by_xpath('//*[@id="app"]/div/div/div[2]/div[2]/span/div/span/div/div/div[2]/span[2]/div/div/span')
+            whatsapp_send_button.click()
+
+
+        
+        
+        
+        
+        
         def sender():
             print('Sender was called')
-            global unsaved_Contacts,message
+            global unsaved_Contacts,message,num
             #time.sleep(1)
+            num = 0
 
             for(i,g) in zip(unsaved_Contacts,message):
                     link = "https://web.whatsapp.com/send?phone={}&text={}".format(i,g)
@@ -252,16 +334,58 @@ class Ui_MainWindow(object):
                             EC.presence_of_element_located((By.ID, "pane-side")))
                         print("Page is ready!")
                         send_unsaved_contact_message()
+                        
+                        status.pop(num)
+                        status.insert(num,'sent')
+                        report_folder()
+                        num = num + 1
                         time.sleep(1)
 
                     except:
                         print('Not sent')
+                        status.pop(num)
+                        status.insert(num,'not_sent')
+                        report_folder()
+                        num = num + 1
                         not_sent_contacts.append(i)
                         unsent_message.append(g)
                         #print(not_sent_contacts)
 
                     else:
                         continue
+
+
+        def report_folder():
+            def write_in_file():
+                #create file & write
+                name_of_file = date_time
+                path_1 = r"E:\\Python_Projects\\Whatsapp_Auto_Report\\"
+                path_2 = str(name_of_file)
+                path_3 = '.xlsx'
+                report_path = path_1 + path_2 + path_3
+                df = pd.DataFrame({'Names':raw_user_name,
+                                    'Contact':unsaved_Contacts,
+                                    'Status':status})
+                df.to_excel(report_path, sheet_name='Names and Ages', index=False)
+                
+
+
+
+            try:
+                #createfolder
+                directory = "Whatsapp_Auto_Report"
+                parent_dir = r"E:\\Python_Projects"
+                path = os.path.join(parent_dir, directory)
+                os.mkdir(path)
+                write_in_file()
+
+            except:
+                write_in_file()
+            
+            
+            
+            
+               
 
 
 
