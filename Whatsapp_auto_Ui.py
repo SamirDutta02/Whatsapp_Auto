@@ -24,9 +24,6 @@ import autoit
 
 
 
-#root = tk.Tk()
-#message_var=tk.StringVar(value='Place Your Message Here')
-
 parser = argparse.ArgumentParser(description='PyWhatsapp Guide')
 parser.add_argument('--chrome_driver_path', action='store', type=str, default=r'./driver/chromedriver.exe', help='chromedriver executable path')
 parser.add_argument('--message', action='store', type=str, default='', help='Enter the msg you want to send')
@@ -40,10 +37,8 @@ browser = None
 Link = "https://web.whatsapp.com/"
 wait = None
 #unsaved_Contacts = None
-choice = None
-docChoice = None
-doc_filename = None
-imgname= None
+doc_filename = ''
+imgname= ''
 not_sent_contacts=[]
 not_sent_contacts_try=[]
 unsent_message=[]
@@ -102,10 +97,17 @@ class Ui_MainWindow(object):
         self.Send_now.setFont(font)
         self.Send_now.setObjectName("Send_now")
 
-        #submit_for_time
+        #set time
         self.Submit = QtWidgets.QPushButton(self.centralwidget)
         self.Submit.setGeometry(QtCore.QRect(20, 320, 75, 23))
         self.Submit.setObjectName("Submit")
+
+        
+        #schedule_btn
+        # self.Schedule_btn = QtWidgets.QPushButton(self.centralwidget)
+        # self.Schedule_btn.setGeometry(QtCore.QRect(20, 350, 75, 23))
+        # self.Schedule_btn.setObjectName("Submit")
+
 
         #time_widget
         self.timeEdit_wid = QtWidgets.QTimeEdit(self.centralwidget)
@@ -149,11 +151,12 @@ class Ui_MainWindow(object):
         self.Placeur_msg_label.setText(_translate("MainWindow", "Place Your Message Here"))
         self.Import_excel.setText(_translate("MainWindow", "Import Excel"))
         self.Send_now.setText(_translate("MainWindow", "Send Now >"))
-        self.Submit.setText(_translate("MainWindow", "Submit"))
+        self.Submit.setText(_translate("MainWindow", "Set Time"))
+        #self.Schedule_btn.setText(_translate("MainWindow", "Schedule"))
         self.Schedule_msg.setText(_translate("MainWindow", "Schedule Message"))
         self.Select_IMG.setText(_translate("MainWindow", "Select IMG"))
         self.select_PDF.setText(_translate("MainWindow", "Select PDF"))
-        self.text_submit.setText(_translate("MainWindow", "Submit Msg"))
+        self.text_submit.setText(_translate("MainWindow", "Save"))
 
 
 
@@ -161,17 +164,20 @@ class Ui_MainWindow(object):
         self.text_submit.clicked.connect(self.getText)
         self.Send_now.clicked.connect(self.auto)
         self.Submit.clicked.connect(self.get_time)
-        self.Select_IMG.clicked.connect(self.get_img_path)
-        self.select_PDF.clicked.connect(self.get_doc_path)
+        self.Select_IMG.clicked.connect(self.get_img_name)
+        self.select_PDF.clicked.connect(self.get_doc_name)
+        #self.Schedule_btn.clicked.connect(self.schedule_)
 
 
 
     def get_time(self):
-        global Schedule_msg
-        send_time = self.timeEdit_wid.time()
-        print('time is ')
-        print(send_time.toString())
+        global Schedule_msg,send_time,set_time
+        set_time = self.timeEdit_wid.time()
+        print('Schedule at')
+        send_time=(set_time.toString())
+        print(send_time)
         Schedule_msg='Yes'
+        print(Schedule_msg)
 
 
     
@@ -181,22 +187,25 @@ class Ui_MainWindow(object):
         print(message_inp_box)
 
 
-    def get_img_path(self):
-        global imgname
-        imgname_path = QFileDialog.getOpenFileName()
-        imgname = imgname_path[0]
+    def get_img_name(self):
+        global imgname, img_send
+        img_path_folder = QFileDialog.getOpenFileName()
+        img_path = img_path_folder[0]
+        print(img_path)
+        imgname=os.path.basename(img_path)
         print(imgname)
+        img_send= 'yes'
 
 
 
-
-
-
-
-
-    def get_doc_path(self):
-        pass
-
+    def get_doc_name(self):
+        global doc_filename, doc_send
+        doc_path_folder = QFileDialog.getOpenFileName()
+        doc_path = doc_path_folder[0]
+        print(doc_path)
+        doc_filename=os.path.basename(doc_path)
+        print(doc_filename)
+        doc_send= 'yes'
 
 
 
@@ -239,14 +248,11 @@ class Ui_MainWindow(object):
                 #print(message)
             return unsaved_Contacts, message, user_name
 
-        
-
 
     
     def auto(self):
 
-        global imgname, message, mainwait
-
+        
         def whatsapp_login(chrome_path):
             global  browser, Link
             chrome_options = Options()
@@ -264,7 +270,6 @@ class Ui_MainWindow(object):
             return
 
 
-        
         def scheduler():
             while True:
                 schedule.run_pending()
@@ -272,6 +277,7 @@ class Ui_MainWindow(object):
 
         
         def send_img():
+            global imgname
 
             clipButton = browser.find_element_by_xpath('//*[@id="main"]/header/div[3]/div/div[2]/div/span')
             clipButton.click()
@@ -280,17 +286,20 @@ class Ui_MainWindow(object):
 
             mediaButton = browser.find_element_by_xpath('//*[@id="main"]/header/div[3]/div/div[2]/span/div/div/ul/li[1]/button')
             mediaButton.click()
-            time.sleep(3)
+            time.sleep(5)
 
-            image_path = os.getcwd() + "\\Media\\" + 'howareyou.jpg'
+            image_path = os.getcwd() +"\\Media\\" + imgname
+            print('test of img path')
+            print(image_path)
 
             autoit.control_focus("Open", "Edit1")
             autoit.control_set_text("Open", "Edit1", image_path)
             autoit.control_click("Open", "Button1")
 
-            time.sleep(3)
-            whatsapp_send_button = browser.find_element_by_xpath('//*[@id="app"]/div/div/div[2]/div[2]/span/div/span/div/div/div[2]/span[2]/div/div/span')
+            time.sleep(5)
+            whatsapp_send_button = browser.find_element_by_xpath('//span[@data-testid="send"]')
             whatsapp_send_button.click()
+            time.sleep(1)
         
         
         def send_doc():
@@ -301,26 +310,22 @@ class Ui_MainWindow(object):
 
             docButton = browser.find_element_by_xpath('//*[@id="main"]/header/div[3]/div/div[2]/span/div/div/ul/li[3]/button')
             docButton.click()
-            time.sleep(1)
+            time.sleep(5)
 
-            docPath = os.getcwd() + "\\Documents\\" + doc_filename
+            docPath = os.getcwd() + "\\Media\\" + doc_filename
 
             autoit.control_focus("Open", "Edit1")
-            autoit.control_set_text("Open", "Edit1", (docPath))
+            autoit.control_set_text("Open", "Edit1", docPath)
             autoit.control_click("Open", "Button1")
-            time.sleep(3)
-            whatsapp_send_button = browser.find_element_by_xpath('//*[@id="app"]/div/div/div[2]/div[2]/span/div/span/div/div/div[2]/span[2]/div/div/span')
+            time.sleep(5)
+            whatsapp_send_button = browser.find_element_by_xpath('//span[@data-testid="send"]')
             whatsapp_send_button.click()
-
-
-        
-        
-        
-        
+            time.sleep(1)
+              
         
         def sender():
             print('Sender was called')
-            global unsaved_Contacts,message,num
+            global message,num
             #time.sleep(1)
             num = 0
 
@@ -334,12 +339,19 @@ class Ui_MainWindow(object):
                             EC.presence_of_element_located((By.ID, "pane-side")))
                         print("Page is ready!")
                         send_unsaved_contact_message()
+
+                        if (img_send=='yes'):
+                            send_img()
                         
+                        if(doc_send=='yes'):
+                            send_doc()
+
+
                         status.pop(num)
                         status.insert(num,'sent')
                         report_folder()
                         num = num + 1
-                        time.sleep(1)
+                        time.sleep(3)
 
                     except:
                         print('Not sent')
@@ -354,7 +366,8 @@ class Ui_MainWindow(object):
                     else:
                         continue
 
-
+        
+        
         def report_folder():
             def write_in_file():
                 #create file & write
@@ -366,7 +379,7 @@ class Ui_MainWindow(object):
                 df = pd.DataFrame({'Names':raw_user_name,
                                     'Contact':unsaved_Contacts,
                                     'Status':status})
-                df.to_excel(report_path, sheet_name='Names and Ages', index=False)
+                df.to_excel(report_path, sheet_name='Whatsapp_Report', index=False)
                 
 
 
@@ -381,26 +394,28 @@ class Ui_MainWindow(object):
 
             except:
                 write_in_file()
-            
-            
-            
-            
-               
+
 
 
 
         if __name__ == "__main__":
             print("Web Page Open")
             print("SCAN YOUR QR CODE FOR WHATSAPP WEB")
-            whatsapp_login(args.chrome_driver_path)
-        
-        if(Schedule_msg == "Yes"):
-            schedule.every().day.at(send_time).do(sender)
-        else:
-            sender()
+            
             scheduler()
-            print(not_sent_contacts)
-            print("Task Completed")
+            if(Schedule_msg == 'Yes'):
+
+                print('Scheduling')
+                whatsapp_login(args.chrome_driver_path)
+                schedule.every().day.at_time(set_time).do(sender)
+                print(not_sent_contacts)
+                print("Task Completed")
+
+            else:
+                whatsapp_login(args.chrome_driver_path)
+                sender()
+                print(not_sent_contacts)
+                print("Task Completed")
  
 
 if __name__ == "__main__":
