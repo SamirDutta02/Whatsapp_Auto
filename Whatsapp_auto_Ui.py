@@ -31,8 +31,8 @@ browser = None
 Link = "https://web.whatsapp.com/"
 wait = None
 #unsaved_Contacts = None
-doc_filename = ''
-imgname= ''
+doc_send = ''
+img_send= ''
 not_sent_contacts=[]
 not_sent_contacts_try=[]
 unsent_message=[]
@@ -326,12 +326,11 @@ class Ui_MainWindow(object):
                         print("Page is ready!")
                         send_unsaved_contact_message()
 
-                        if (img_send=='yes'):
+                        if ((img_send=='yes') and (doc_send=='')):
                             print('sending img')
                             send_img()
                             
-                        if (doc_send=='yes'):
-
+                        if ((img_send=='') and (doc_send=='yes')):
                             print('sending doc')
                             send_doc()
 
