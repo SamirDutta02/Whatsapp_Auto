@@ -42,6 +42,8 @@ status=[]
 message_inp_box= ''
 Schedule_msg =''
 num = 0
+row_head = 0
+row_tail = 150
 date_time = datetime.datetime.now().strftime("%d.%m.%y")
 
 
@@ -49,7 +51,7 @@ date_time = datetime.datetime.now().strftime("%d.%m.%y")
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(657, 391)
+        MainWindow.resize(657, 420)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
@@ -65,10 +67,11 @@ class Ui_MainWindow(object):
         self.input_text_box = QtWidgets.QTextEdit(self.centralwidget)
         self.input_text_box.setGeometry(QtCore.QRect(10, 30, 631, 161))
         self.input_text_box.setObjectName("input_text_box")
+        self.input_text_box.setPlaceholderText('Place Your Text Here')
 
         #text_submit_btn
         self.text_submit = QtWidgets.QPushButton(self.centralwidget)
-        self.text_submit.setGeometry(QtCore.QRect(550, 200, 81, 31))
+        self.text_submit.setGeometry(QtCore.QRect(560, 200, 75, 23))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.text_submit.setFont(font)
@@ -78,7 +81,7 @@ class Ui_MainWindow(object):
 
         #excelbtn
         self.Import_excel = QtWidgets.QPushButton(self.centralwidget)
-        self.Import_excel.setGeometry(QtCore.QRect(270, 200, 100, 41))
+        self.Import_excel.setGeometry(QtCore.QRect(210, 260, 100, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.Import_excel.setFont(font)
@@ -86,7 +89,7 @@ class Ui_MainWindow(object):
 
         #send_now_btn
         self.Send_now = QtWidgets.QPushButton(self.centralwidget)
-        self.Send_now.setGeometry(QtCore.QRect(550, 280, 81, 31))
+        self.Send_now.setGeometry(QtCore.QRect(530, 342, 91, 41))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.Send_now.setFont(font)
@@ -94,24 +97,18 @@ class Ui_MainWindow(object):
 
         #set time
         self.Submit = QtWidgets.QPushButton(self.centralwidget)
-        self.Submit.setGeometry(QtCore.QRect(20, 320, 75, 23))
+        self.Submit.setGeometry(QtCore.QRect(400, 280, 75, 23))
         self.Submit.setObjectName("Submit")
-
-        
-        #schedule_btn
-        # self.Schedule_btn = QtWidgets.QPushButton(self.centralwidget)
-        # self.Schedule_btn.setGeometry(QtCore.QRect(20, 350, 75, 23))
-        # self.Schedule_btn.setObjectName("Submit")
 
 
         #time_widget
         self.timeEdit_wid = QtWidgets.QTimeEdit(self.centralwidget)
-        self.timeEdit_wid.setGeometry(QtCore.QRect(20, 290, 118, 22))
+        self.timeEdit_wid.setGeometry(QtCore.QRect(400, 245, 118, 22))
         self.timeEdit_wid.setObjectName("timeEdit_wid")
         
         #Schedule_msg_label
         self.Schedule_msg = QtWidgets.QLabel(self.centralwidget)
-        self.Schedule_msg.setGeometry(QtCore.QRect(20, 270, 101, 16))
+        self.Schedule_msg.setGeometry(QtCore.QRect(400, 220, 101, 16))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.Schedule_msg.setFont(font)
@@ -119,13 +116,61 @@ class Ui_MainWindow(object):
 
         #img btn
         self.Select_IMG = QtWidgets.QPushButton(self.centralwidget)
-        self.Select_IMG.setGeometry(QtCore.QRect(200, 280, 81, 31))
+        self.Select_IMG.setGeometry(QtCore.QRect(50, 210, 81, 31))
         self.Select_IMG.setObjectName("Select_IMG")
 
         #doc btn
         self.select_PDF = QtWidgets.QPushButton(self.centralwidget)
-        self.select_PDF.setGeometry(QtCore.QRect(390, 280, 81, 31))
+        self.select_PDF.setGeometry(QtCore.QRect(50, 280, 81, 31))
         self.select_PDF.setObjectName("select_PDF")
+
+
+
+        self.row_head_inp = QtWidgets.QSpinBox(self.centralwidget)
+        self.row_head_inp.setGeometry(QtCore.QRect(193, 230, 42, 22))
+        self.row_head_inp.setMaximum(999)
+        self.row_head_inp.setObjectName("row_head_inp")
+        self.row_tail_inp = QtWidgets.QSpinBox(self.centralwidget)
+        self.row_tail_inp.setGeometry(QtCore.QRect(282, 230, 42, 22))
+        self.row_tail_inp.setMaximum(999)
+        self.row_tail_inp.setObjectName("row_tail_inp")
+
+        
+        self.Rows = QtWidgets.QLabel(self.centralwidget)
+        self.Rows.setGeometry(QtCore.QRect(240, 230, 41, 20))
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.Rows.setFont(font)
+        self.Rows.setObjectName("Rows")
+        
+        self.IMG_Selected = QtWidgets.QLabel(self.centralwidget)
+        self.IMG_Selected.setGeometry(QtCore.QRect(40, 240, 91, 20))
+        self.IMG_Selected.setObjectName("IMG_Selected")
+        
+        self.Doc_selected = QtWidgets.QLabel(self.centralwidget)
+        self.Doc_selected.setGeometry(QtCore.QRect(40, 310, 91, 20))
+        self.Doc_selected.setObjectName("Doc_selected")
+        
+        self.Excel_selected = QtWidgets.QLabel(self.centralwidget)
+        self.Excel_selected.setGeometry(QtCore.QRect(209, 290, 91, 20))
+        self.Excel_selected.setObjectName("Excel_selected")
+        
+        self.Task_completed = QtWidgets.QLabel(self.centralwidget)
+        self.Task_completed.setGeometry(QtCore.QRect(240, 380, 111, 20))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.Task_completed.setFont(font)
+        self.Task_completed.setObjectName("Task_completed")
+        
+        self.Try_again_btn = QtWidgets.QPushButton(self.centralwidget)
+        self.Try_again_btn.setGeometry(QtCore.QRect(444, 360, 71, 23))
+        self.Try_again_btn.setObjectName("Try_again_btn")
+
+        self.Message_saved_label = QtWidgets.QLabel(self.centralwidget)
+        self.Message_saved_label.setGeometry(QtCore.QRect(563, 225, 81, 20))
+        self.Message_saved_label.setObjectName("Message_saved_label")
+        self.Time_set = QtWidgets.QLabel(self.centralwidget)
+        self.Time_set.setGeometry(QtCore.QRect(410, 299, 51, 20))
 
 
         MainWindow.setCentralWidget(self.centralwidget)
@@ -143,7 +188,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Auto Whatsapp"))
-        self.Placeur_msg_label.setText(_translate("MainWindow", "Place Your Message Here"))
+        self.Placeur_msg_label.setText(_translate("MainWindow", "Your Message :-"))
         self.Import_excel.setText(_translate("MainWindow", "Import Excel"))
         self.Send_now.setText(_translate("MainWindow", "SEND >"))
         self.Submit.setText(_translate("MainWindow", "Set Time"))
@@ -152,9 +197,17 @@ class Ui_MainWindow(object):
         self.Select_IMG.setText(_translate("MainWindow", "Select IMG"))
         self.select_PDF.setText(_translate("MainWindow", "Select PDF"))
         self.text_submit.setText(_translate("MainWindow", "Save"))
+        self.Rows.setText(_translate("MainWindow", "-Rows-"))
+        self.IMG_Selected.setText(_translate("MainWindow", " "))
+        self.Doc_selected.setText(_translate("MainWindow", " "))
+        self.Excel_selected.setText(_translate("MainWindow", " "))
+        self.Task_completed.setText(_translate("MainWindow", ""))
+        self.Try_again_btn.setText(_translate("MainWindow", "Try Again"))
+        self.Message_saved_label.setText(_translate("MainWindow", ""))
+        self.Time_set.setText(_translate("MainWindow", ""))
 
 
-
+        #function_mapping
         self.Import_excel.clicked.connect(self.getExcel)
         self.text_submit.clicked.connect(self.getText)
         self.Send_now.clicked.connect(self.auto)
@@ -164,6 +217,7 @@ class Ui_MainWindow(object):
         #self.Schedule_btn.clicked.connect(self.schedule_)
 
 
+    
     def get_time(self):
         global Schedule_msg,send_time,set_time
         set_time = self.timeEdit_wid.time()
@@ -172,6 +226,7 @@ class Ui_MainWindow(object):
         send_time= send_time[:-3]
         print(send_time)
         Schedule_msg='Yes'
+        self.Time_set.setText(' Time Set')
         print(Schedule_msg)
 
     
@@ -179,6 +234,7 @@ class Ui_MainWindow(object):
         global message_inp_box
         message_inp_box = self.input_text_box.toPlainText()
         print(message_inp_box)
+        self.Message_saved_label.setText('Message Saved')
 
     def get_img_name(self):
         global imgname, img_send
@@ -187,6 +243,7 @@ class Ui_MainWindow(object):
         print(img_path)
         imgname=os.path.basename(img_path)
         print(imgname)
+        self.IMG_Selected.setText("     IMG Selected")
         img_send= 'yes'
 
     def get_doc_name(self):
@@ -196,30 +253,39 @@ class Ui_MainWindow(object):
         print(doc_path)
         doc_filename=os.path.basename(doc_path)
         print(doc_filename)
+        self.Doc_selected.setText("     DOC Selected")
         doc_send= 'yes'
 
 
     def getExcel(self):
         global message_inp_box,unsaved_Contacts,message,raw_user_name
-        
+        row_head=self.row_head_inp.value()
+        row_tail=self.row_tail_inp.value()
         print('Import Excel')
         path = QFileDialog.getOpenFileName()
         file_path = path[0]
         print(file_path)
+        
+        if (row_tail-row_head > 150):
+            self.Excel_selected.setText("Max 150 Rows")
+            return
+        
 
-        df1 = pd.read_excel(file_path, usecols='A')
-        df2 = pd.read_excel(file_path, usecols='B')
-        df3 = pd.read_excel(file_path, usecols='C')
-        raw_user_name=list(df1['Names'])
-        raw_unsaved_Contacts = list(df2['Contact'])
+        df1 = pd.read_excel(file_path)
+        raw_user_name=list(df1.loc[row_head:row_tail, 'Names'])
+        print(raw_user_name)
+        raw_unsaved_Contacts = list(df1.loc[row_head:row_tail, 'Contact'])
         str_unsaved_Contacts = map(str, raw_unsaved_Contacts)
         unsaved_Contacts=[]
         for names in str_unsaved_Contacts:
             unsaved_Contacts.append(names.replace(' ', '').replace('-', '').replace('+', ''))
-        raw_message = list(df3['Message'])
+        raw_message = list(df1.loc[row_head:row_tail, 'Message'])
+        
         user_name=[]
         for s in raw_user_name:
             user_name.append(s.replace(' ', '%20').replace('&','%26').replace('?', '%3F'))
+
+        self.Excel_selected.setText("     Excel Selected")
 
         for n in range (0,len(user_name)):
             status.append('pending')
@@ -370,10 +436,10 @@ class Ui_MainWindow(object):
                 path_2 = str(name_of_file)
                 path_3 = '.xlsx'
                 report_path = path_1 + path_2 + path_3
-                df = pd.DataFrame({'Names':raw_user_name,
+                df_rep = pd.DataFrame({'Names':raw_user_name,
                                     'Contact':unsaved_Contacts,
                                     'Status':status})
-                df.to_excel(report_path, sheet_name='Whatsapp_Report', index=False)
+                df_rep.to_excel(report_path, sheet_name='Whatsapp_Report', index=False)
 
 
             try:
@@ -388,6 +454,7 @@ class Ui_MainWindow(object):
                 write_in_file()
 
         def first():
+
 
             #if __name__ == "__main__":
             print("Web Page Open")

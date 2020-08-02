@@ -2,7 +2,7 @@ pyinstaller ./Whatsapp_Auto_beta.py --onefile --add-binary "./driver/chromedrive
 
 https://web.whatsapp.com/send?phone=919284068032&text=Place%20Your%20Message%20Here
 
-pyuic5 -x Whatsapp_auto_Ui.ui -o Whatsapp_auto_Ui.py
+pyuic5 -x Whatsapp_auto_Ui_new.ui -o Whatsapp_auto_Ui_new.py
 
 
 
