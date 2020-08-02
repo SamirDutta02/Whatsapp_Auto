@@ -30,6 +30,7 @@ browser = None
 #message = []
 Link = "https://web.whatsapp.com/"
 wait = None
+element = None
 #unsaved_Contacts = None
 doc_send = ''
 img_send= ''
@@ -241,7 +242,7 @@ class Ui_MainWindow(object):
     def auto(self):
 
         def whatsapp_login(chrome_path):
-            global  browser, Link
+            global  browser, Link, wait
             chrome_options = Options()
             chrome_options.add_argument('--user-data-dir=./User_Data')
             browser = webdriver.Chrome(executable_path=chrome_path, options=chrome_options)
@@ -278,6 +279,7 @@ class Ui_MainWindow(object):
 
             autoit.control_focus("Open", "Edit1")
             autoit.control_set_text("Open", "Edit1", image_path)
+            time.sleep(1)
             autoit.control_click("Open", "Button1")
 
             time.sleep(5)
@@ -303,6 +305,7 @@ class Ui_MainWindow(object):
 
             autoit.control_focus("Open", "Edit1")
             autoit.control_set_text("Open", "Edit1", docPath)
+            time.sleep(1)
             autoit.control_click("Open", "Button1")
             
             time.sleep(5)
@@ -313,7 +316,7 @@ class Ui_MainWindow(object):
         
         def sender():
             print('Sender was called')
-            global message,num
+            global message,num,element
             num = 0
             for(i,g) in zip(unsaved_Contacts,message):
                     link = "https://web.whatsapp.com/send?phone={}&text={}".format(i,g)
@@ -321,7 +324,7 @@ class Ui_MainWindow(object):
                     browser.get(link)
                     try:
                         time.sleep(5)
-                        wait_ = WebDriverWait(browser, 20).until(
+                        element = WebDriverWait(browser, 30).until(
                             EC.presence_of_element_located((By.ID, "pane-side")))
                         print("Page is ready!")
                         send_unsaved_contact_message()
@@ -336,7 +339,7 @@ class Ui_MainWindow(object):
 
                         if ((img_send=='yes') and (doc_send=='yes')):
                             send_img()
-                            send_doc
+                            send_doc()
                         else:
                             pass
                     
