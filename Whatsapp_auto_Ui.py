@@ -27,11 +27,10 @@ args = parser.parse_args()
 if args.remove_cache == 'True':
     os.system('rm -rf User_Data/*')
 browser = None
-#message = []
 Link = "https://web.whatsapp.com/"
 wait = None
 element = None
-#unsaved_Contacts = None
+wait_try = None
 doc_send = ''
 img_send= ''
 not_sent_contacts=[]
@@ -51,7 +50,7 @@ date_time = datetime.datetime.now().strftime("%d.%m.%y")
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(657, 420)
+        MainWindow.resize(657, 400)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
@@ -89,7 +88,7 @@ class Ui_MainWindow(object):
 
         #send_now_btn
         self.Send_now = QtWidgets.QPushButton(self.centralwidget)
-        self.Send_now.setGeometry(QtCore.QRect(530, 342, 91, 41))
+        self.Send_now.setGeometry(QtCore.QRect(530, 320, 91, 41))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.Send_now.setFont(font)
@@ -134,6 +133,7 @@ class Ui_MainWindow(object):
         self.row_tail_inp.setGeometry(QtCore.QRect(282, 230, 42, 22))
         self.row_tail_inp.setMaximum(999)
         self.row_tail_inp.setObjectName("row_tail_inp")
+        self.row_tail_inp.setValue(150)
 
         
         self.Rows = QtWidgets.QLabel(self.centralwidget)
@@ -163,7 +163,7 @@ class Ui_MainWindow(object):
         self.Task_completed.setObjectName("Task_completed")
         
         self.Try_again_btn = QtWidgets.QPushButton(self.centralwidget)
-        self.Try_again_btn.setGeometry(QtCore.QRect(444, 360, 71, 23))
+        self.Try_again_btn.setGeometry(QtCore.QRect(444, 340, 71, 23))
         self.Try_again_btn.setObjectName("Try_again_btn")
 
         self.Message_saved_label = QtWidgets.QLabel(self.centralwidget)
@@ -214,7 +214,7 @@ class Ui_MainWindow(object):
         self.Submit.clicked.connect(self.get_time)
         self.Select_IMG.clicked.connect(self.get_img_name)
         self.select_PDF.clicked.connect(self.get_doc_name)
-        #self.Schedule_btn.clicked.connect(self.schedule_)
+        self.Try_again_btn.clicked.connect(self.try_again)
 
 
     
@@ -305,8 +305,38 @@ class Ui_MainWindow(object):
                 #print(message)
             return unsaved_Contacts, message, user_name
 
-    def auto(self):
 
+
+    def try_again(self):
+        print("Inside try again")
+        global not_sent_contacts_try,unsent_message_try,wait_try
+
+        for (b, u) in zip(not_sent_contacts, unsent_message):
+            link = "https://web.whatsapp.com/send?phone={}&text={}".format(b, u)
+            print(link)
+            browser.get(link)
+            try:
+                time.sleep(8)
+                wait_try = WebDriverWait(browser, 45).until(
+                    EC.presence_of_element_located((By.ID, "pane-side")))
+                print("Page is ready!")
+                send = browser.find_element_by_xpath("//span[@data-testid='send']")
+                send.click()
+                time.sleep(1)
+
+            except:
+                print('Not sent')
+                not_sent_contacts_try.append(b)
+                #unsent_message_try.append(u)
+
+
+            else:
+                continue
+
+
+
+    def auto(self):
+        
         def whatsapp_login(chrome_path):
             global  browser, Link, wait
             chrome_options = Options()
@@ -413,7 +443,7 @@ class Ui_MainWindow(object):
                         status.insert(num,'sent')
                         report_folder()
                         num = num + 1
-                        time.sleep(3)
+                        time.sleep(2)
 
                     except:
                         print('Not sent')
@@ -432,7 +462,7 @@ class Ui_MainWindow(object):
             def write_in_file():
                 #create file & write
                 name_of_file = date_time
-                path_1 = r"E:\\Python_Projects\\Whatsapp_Auto_Report\\"
+                path_1 = r"./Whatsapp_Auto_Report/"
                 path_2 = str(name_of_file)
                 path_3 = '.xlsx'
                 report_path = path_1 + path_2 + path_3
@@ -445,7 +475,7 @@ class Ui_MainWindow(object):
             try:
                 #createfolder
                 directory = "Whatsapp_Auto_Report"
-                parent_dir = r"E:\\Python_Projects"
+                parent_dir = r"./"
                 path = os.path.join(parent_dir, directory)
                 os.mkdir(path)
                 write_in_file()
@@ -453,8 +483,7 @@ class Ui_MainWindow(object):
             except:
                 write_in_file()
 
-        def first():
-
+        def first_func():
 
             #if __name__ == "__main__":
             print("Web Page Open")
@@ -468,21 +497,24 @@ class Ui_MainWindow(object):
                 scheduler()
                 print(not_sent_contacts)
                 print("Task Completed")
+                time.sleep(3)
+                browser.quit()
+                #self.Task_completed.setText('Task Completed')
 
             else:
                 sender()
                 print(not_sent_contacts)
                 print("Task Completed")
-        first()
+                time.sleep(3)
+                browser.quit()
+            
+                #self.Task_completed.setText('Task Completed')
+        first_func()
 
 if __name__ == "__main__":
 
     import sys
-    #app = QtWidgets.QApplication(sys.argv)
-    try:
-        app
-    except:
-        app = QtWidgets.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
