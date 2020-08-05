@@ -21,7 +21,7 @@ import autoit
 parser = argparse.ArgumentParser(description='PyWhatsapp Guide')
 parser.add_argument('--chrome_driver_path', action='store', type=str, default=r'./driver/chromedriver.exe', help='chromedriver executable path')
 parser.add_argument('--message', action='store', type=str, default='', help='Enter the msg you want to send')
-parser.add_argument('--remove_cache', action='store', type=str, default='False', help='Remove Cache | Scan QR again or Not')
+parser.add_argument('--remove_cache', action='store', type=str, default='False', help='Remove Cache')
 args = parser.parse_args()
 
 if args.remove_cache == 'True':
@@ -43,7 +43,7 @@ Schedule_msg =''
 num = 0
 row_head = 0
 row_tail = 150
-date_time = datetime.datetime.now().strftime("%d.%m.%y")
+date_time = datetime.datetime.now().strftime("%H.%M.%S")
 
 
 
@@ -187,12 +187,11 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Auto Whatsapp"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Auto Whatsapp Accounting"))
         self.Placeur_msg_label.setText(_translate("MainWindow", "Your Message :-"))
         self.Import_excel.setText(_translate("MainWindow", "Import Excel"))
         self.Send_now.setText(_translate("MainWindow", "SEND >"))
         self.Submit.setText(_translate("MainWindow", "Set Time"))
-        #self.Schedule_btn.setText(_translate("MainWindow", "Schedule"))
         self.Schedule_msg.setText(_translate("MainWindow", "Schedule Message"))
         self.Select_IMG.setText(_translate("MainWindow", "Select IMG"))
         self.select_PDF.setText(_translate("MainWindow", "Select PDF"))
@@ -262,54 +261,101 @@ class Ui_MainWindow(object):
         row_head=self.row_head_inp.value()
         row_tail=self.row_tail_inp.value()
         print('Import Excel')
+
+        if (row_tail-row_head > 150):
+            self.Excel_selected.setText("150 Rows at a time")
+            return
+        
         path = QFileDialog.getOpenFileName()
         file_path = path[0]
         print(file_path)
-        
-        if (row_tail-row_head > 150):
-            self.Excel_selected.setText("Max 150 Rows")
-            return
-        
 
         df1 = pd.read_excel(file_path)
-        raw_user_name=list(df1.loc[row_head:row_tail, 'Names'])
-        print(raw_user_name)
-        raw_unsaved_Contacts = list(df1.loc[row_head:row_tail, 'Contact'])
-        str_unsaved_Contacts = map(str, raw_unsaved_Contacts)
-        unsaved_Contacts=[]
-        for names in str_unsaved_Contacts:
-            unsaved_Contacts.append(names.replace(' ', '').replace('-', '').replace('+', ''))
+        raw_performa_invoice=list(df1.loc[row_head:row_tail, 'Performa Invoice No.'])
+        raw_user_name=list(df1.loc[row_head:row_tail, "Client's Name"])
+        raw_invoice_date=list(df1.loc[row_head:row_tail, 'Invoice Date'])
+        raw_amount= list(df1.loc[row_head:row_tail, 'Amount'])
+        raw_due_date= list(df1.loc[row_head:row_tail, 'Due Date'])
+        raw_remark= list(df1.loc[row_head:row_tail, 'Remark'])
+        raw_unsaved_Contacts = list(df1.loc[row_head:row_tail, 'Contact No.'])
         raw_message = list(df1.loc[row_head:row_tail, 'Message'])
         
-        user_name=[]
-        for s in raw_user_name:
-            user_name.append(s.replace(' ', '%20').replace('&','%26').replace('?', '%3F'))
+        #converting int into string
+        str_unsaved_Contacts = map(str, raw_unsaved_Contacts)
+        str_performa_invoice = map(str, raw_performa_invoice)
+        str_invoice_date = map(str,raw_invoice_date )
+        str_due_date = map(str, raw_due_date)
+        str_amount = map(str, raw_amount)
+        str_remark = map(str, raw_remark)
+        
+        
+        if (len(raw_performa_invoice)>0):
+            performa_invoice=[]
+            for n in str_performa_invoice:
+                performa_invoice.append(n.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+        
+        if(len(raw_user_name)>0):
+            user_name=[]
+            for s in raw_user_name:
+                user_name.append(s.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+        
+        if(len(raw_invoice_date)>0):
+            invoice_date=[]
+            for date in str_invoice_date:
+                invoice_date.append(date.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+        
+        if(len(raw_amount)>0):
+            amount=[]
+            for value in str_amount:
+                amount.append(value.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+        if(len(raw_due_date)>0):
+            due_date=[]
+            for due in str_due_date:
+                due_date.append(due.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+
+        if (len(str_remark)>0):
+            remark=[]
+            for rem in str_remark:
+                remark.append(rem.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+        else:
+            pass
+        
+        unsaved_Contacts=[]
+        for number in str_unsaved_Contacts:
+            unsaved_Contacts.append(number.replace(' ', '').replace('-', '').replace('+', ''))
+        
+
 
         self.Excel_selected.setText("     Excel Selected")
 
+        
+        #appending report excel
         for n in range (0,len(user_name)):
             status.append('pending')
             
         if(message_inp_box== ''):
             message=[]
-            for (r, x) in zip(raw_message,user_name):
-                message.append(r.replace(' ', '%20').replace('\n', '%0D%0A').replace('NAME', x).replace('&','%26').replace('?', '%3F'))
+            for (msg,per,user,inv_d,amt,due,rem) in zip(raw_message,performa_invoice,user_name,invoice_date,amount,due_date,remark):
+                message.append(msg.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B').
+                                    replace('[Performa%20Invoice%20No.]',per).replace("[Client's%20Name]",user).replace('[Invoice%20Date]',inv_d).
+                                    replace('[Amount]',amt).replace('[Due%20Date]',due).replace('[Remark]',rem))
                 #print(message)
-            return unsaved_Contacts, message, user_name
+            
 
         else:
-            msg1 = message_inp_box.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('?', '%3F')
+            msg1 = message_inp_box.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B')
             message = []
-            for x in user_name:
-                message.append(msg1.replace('NAME', x))
+            for (per,user,inv_d,amt,due,rem) in zip(performa_invoice,user_name,invoice_date,amount,due_date,remark):
+                message.append(msg1.replace('[Performa%20Invoice%20No.]',per).replace("[Client's Name]",user).replace('[Invoice%20Date]',inv_d).
+                                            replace('[Amount]',amt).replace('[Due%20Date]',due).replace('[Remark]',rem))
                 #print(message)
-            return unsaved_Contacts, message, user_name
+            
 
 
 
     def try_again(self):
         print("Inside try again")
-        global not_sent_contacts_try,unsent_message_try,wait_try
+        global not_sent_contacts_try,wait_try
 
         for (b, u) in zip(not_sent_contacts, unsent_message):
             link = "https://web.whatsapp.com/send?phone={}&text={}".format(b, u)
@@ -351,6 +397,7 @@ class Ui_MainWindow(object):
         def send_unsaved_contact_message():
             send = browser.find_element_by_xpath("//span[@data-testid='send']")
             send.click()
+            print('Message Sent')
             return
 
         def scheduler():
@@ -422,8 +469,8 @@ class Ui_MainWindow(object):
                         time.sleep(5)
                         element = WebDriverWait(browser, 30).until(
                             EC.presence_of_element_located((By.ID, "pane-side")))
-                        print("Page is ready!")
                         send_unsaved_contact_message()
+                        
 
                         if ((img_send=='yes') and (doc_send=='')):
                             print('sending img')
@@ -443,7 +490,7 @@ class Ui_MainWindow(object):
                         status.insert(num,'sent')
                         report_folder()
                         num = num + 1
-                        time.sleep(2)
+                        time.sleep(1)
 
                     except:
                         print('Not sent')

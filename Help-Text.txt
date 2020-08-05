@@ -1,4 +1,4 @@
-pyinstaller --hidden-import=autoit ./Whatsapp_auto.py --onedir --add-binary "./driver/chromedriver.exe;./driver"
+pyinstaller ./Whatsapp_accounting.py --onedir --noconsole --add-binary "./driver/chromedriver.exe;./driver"
 
 https://web.whatsapp.com/send?phone=919284068032&text=Place%20Your%20Message%20Here
 

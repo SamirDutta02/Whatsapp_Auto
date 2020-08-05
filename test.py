@@ -1,8 +1,10 @@
-a= 10
-b=20
-if((b-a)>5):
-    print('too large')
-    exit()
-
-
-print('yes')
+var='n0'
+def fun():
+    global var
+    var = "hello"
+    var2= "lol"
+    return var2
+print(var)
+fun()
+print(var)
+print(fun())
