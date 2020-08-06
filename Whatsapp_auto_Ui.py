@@ -1,3 +1,4 @@
+#master
 import schedule
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog,QTimeEdit
@@ -32,8 +33,6 @@ Link = "https://web.whatsapp.com/"
 wait = None
 element = None
 wait_try = None
-doc_wait=None
-img_wait=None
 doc_send = ''
 img_send= ''
 not_sent_contacts=[]
@@ -360,7 +359,7 @@ class Ui_MainWindow(object):
                 time.sleep(1)
         
         def send_img():
-            global imgname, img_wait
+            global imgname
 
             clipButton = browser.find_element_by_xpath('//*[@id="main"]/header/div[3]/div/div[2]/div/span')
             clipButton.click()
@@ -379,16 +378,14 @@ class Ui_MainWindow(object):
             time.sleep(1)
             autoit.control_click("Open", "Button1")
 
-            time.sleep(3)
+            time.sleep(5)
             whatsapp_send_button = browser.find_element_by_xpath('//span[@data-testid="send"]')
-            img_wait = WebDriverWait(browser, 15).until(
-                EC.presence_of_element_located((By.XPATH, "//span[@data-testid='send']")))
             whatsapp_send_button.click()
-            time.sleep(3)
+            time.sleep(1)
         
         
         def send_doc():
-            global doc_filename,doc_wait
+            global doc_filename
             clipButton = browser.find_element_by_xpath('//*[@id="main"]/header/div[3]/div/div[2]/div/span')
             clipButton.click()
             time.sleep(1)
@@ -407,12 +404,10 @@ class Ui_MainWindow(object):
             time.sleep(1)
             autoit.control_click("Open", "Button1")
             
-            time.sleep(3)
-            whatsapp_send_button = browser.find_element_by_xpath('//span[@data-testid="send"]')
-            doc_wait = WebDriverWait(browser, 15).until(
-                EC.presence_of_element_located((By.XPATH, "//span[@data-testid='send']")))
-            whatsapp_send_button.click()
             time.sleep(5)
+            whatsapp_send_button = browser.find_element_by_xpath('//span[@data-testid="send"]')
+            whatsapp_send_button.click()
+            time.sleep(1)
               
         
         def sender():
