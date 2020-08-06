@@ -2,6 +2,8 @@ import schedule
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog,QTimeEdit
 import pandas as pd
+import xlrd
+from xlrd import XLRDError
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -42,7 +44,7 @@ Schedule_msg =''
 num = 0
 row_head = 0
 row_tail = 150
-date_time = datetime.datetime.now().strftime("%d.%m.%y")
+date_time = datetime.datetime.now().strftime("%H.%M.%S")
 
 
 
@@ -260,31 +262,31 @@ class Ui_MainWindow(object):
         global message_inp_box,unsaved_Contacts,message,raw_user_name
         row_head=self.row_head_inp.value()
         row_tail=self.row_tail_inp.value()
+        if (row_tail-row_head > 150):
+            self.Excel_selected.setText("Max 150 Rows")
+            return 
+        
         print('Import Excel')
         path = QFileDialog.getOpenFileName()
         file_path = path[0]
         print(file_path)
-        
-        if (row_tail-row_head > 150):
-            self.Excel_selected.setText("Max 150 Rows")
-            return
-        
+        self.Excel_selected.setText("     Excel Selected")
 
-        df1 = pd.read_excel(file_path)
+        #read data from excel
+        df1 = pd.read_excel(file_path,na_filter= False,dtype=str)
         raw_user_name=list(df1.loc[row_head:row_tail, 'Names'])
-        print(raw_user_name)
         raw_unsaved_Contacts = list(df1.loc[row_head:row_tail, 'Contact'])
-        str_unsaved_Contacts = map(str, raw_unsaved_Contacts)
-        unsaved_Contacts=[]
-        for names in str_unsaved_Contacts:
-            unsaved_Contacts.append(names.replace(' ', '').replace('-', '').replace('+', ''))
         raw_message = list(df1.loc[row_head:row_tail, 'Message'])
+        
+        unsaved_Contacts=[]
+        for names in raw_unsaved_Contacts:
+            unsaved_Contacts.append(names.replace(' ', '').replace('+', ''))
+                                           
         
         user_name=[]
         for s in raw_user_name:
-            user_name.append(s.replace(' ', '%20').replace('&','%26').replace('?', '%3F'))
-
-        self.Excel_selected.setText("     Excel Selected")
+            user_name.append(s.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+ 
 
         for n in range (0,len(user_name)):
             status.append('pending')
@@ -292,17 +294,15 @@ class Ui_MainWindow(object):
         if(message_inp_box== ''):
             message=[]
             for (r, x) in zip(raw_message,user_name):
-                message.append(r.replace(' ', '%20').replace('\n', '%0D%0A').replace('NAME', x).replace('&','%26').replace('?', '%3F'))
+                message.append(r.replace(' ', '%20').replace('\n', '%0D%0A').replace('+', '%2B').replace('NAME', x).replace('&','%26'))
                 #print(message)
-            return unsaved_Contacts, message, user_name
 
         else:
-            msg1 = message_inp_box.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('?', '%3F')
+            msg1 = message_inp_box.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B')
             message = []
             for x in user_name:
                 message.append(msg1.replace('NAME', x))
-                #print(message)
-            return unsaved_Contacts, message, user_name
+                #print(message)          
 
 
 
@@ -342,7 +342,7 @@ class Ui_MainWindow(object):
             chrome_options.add_argument('--user-data-dir=./User_Data')
             browser = webdriver.Chrome(executable_path=chrome_path, options=chrome_options)
             browser.get(Link)
-            wait = WebDriverWait(browser, 90).until(
+            wait = WebDriverWait(browser, 120).until(
                             EC.presence_of_element_located((By.ID, "pane-side")))
             browser.maximize_window()
             print("QR scanned")
@@ -418,11 +418,19 @@ class Ui_MainWindow(object):
                     print(link)
                     browser.get(link)
                     try:
-                        time.sleep(5)
-                        element = WebDriverWait(browser, 30).until(
-                            EC.presence_of_element_located((By.ID, "pane-side")))
-                        print("Page is ready!")
-                        send_unsaved_contact_message()
+                        time.sleep(7)
+                        if((img_send=='yes') or (doc_send=='yes')):
+
+                            element = WebDriverWait(browser, 65).until(
+                                EC.presence_of_element_located((By.XPATH, "//span[@data-testid='send']")))
+                            send_unsaved_contact_message()
+                            print("Page is ready!")
+                        else:
+                            element = WebDriverWait(browser, 30).until(
+                                EC.presence_of_element_located((By.XPATH, "//span[@data-testid='send']")))
+                            send_unsaved_contact_message()
+                            print("Page is ready!")
+
 
                         if ((img_send=='yes') and (doc_send=='')):
                             print('sending img')
@@ -496,16 +504,13 @@ class Ui_MainWindow(object):
                 scheduler()
                 print(not_sent_contacts)
                 print("Task Completed")
-                time.sleep(3)
-                browser.quit()
                 #self.Task_completed.setText('Task Completed')
 
             else:
                 sender()
                 print(not_sent_contacts)
                 print("Task Completed")
-                time.sleep(3)
-                browser.quit()
+                
             
                 #self.Task_completed.setText('Task Completed')
         first_func()
