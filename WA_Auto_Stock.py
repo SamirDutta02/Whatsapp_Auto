@@ -274,66 +274,34 @@ class Ui_MainWindow(object):
 
         #read data from excel
         df1 = pd.read_excel(file_path,na_filter= False,dtype=str)
-        raw_performa = list(df1.loc[row_head:row_tail, 'Performa Invoice No.'])
-        raw_user_name  =list(df1.loc[row_head:row_tail, 'Client Name'])
-        raw_unsaved_Contacts = list(df1.loc[row_head:row_tail, 'Contact No.'])
-        raw_invoice_date = list(df1.loc[row_head:row_tail, 'Invoice Date'])
-        raw_amount = list(df1.loc[row_head:row_tail, 'Amount'])
-        raw_due_date = list(df1.loc[row_head:row_tail, 'Due Date'])
-        raw_remark = list(df1.loc[row_head:row_tail, 'Remark'])
+        raw_user_name=list(df1.loc[row_head:row_tail, 'Names'])
+        raw_unsaved_Contacts = list(df1.loc[row_head:row_tail, 'Contact'])
         raw_message = list(df1.loc[row_head:row_tail, 'Message'])
-        
-        
-        performa=[]
-        for per in raw_performa:
-            performa.append(per.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
-
-        user_name=[]
-        for un in raw_user_name:
-            user_name.append(un.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
         
         unsaved_Contacts=[]
         for names in raw_unsaved_Contacts:
             unsaved_Contacts.append(names.replace(' ', '').replace('+', ''))
                                            
-        invoice_date=[]
-        for date in raw_invoice_date:
-            invoice_date.append(date.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+        
+        user_name=[]
+        for s in raw_user_name:
+            user_name.append(s.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+ 
 
-        amount=[]
-        for amt in raw_amount:
-            amount.append(amt.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
-        
-        due_date=[]
-        for due in raw_due_date:
-            due_date.append(due.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
-        
-        remark=[]
-        for rem in raw_remark:
-            remark.append(rem.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
-        
-        #report work
         for n in range (0,len(user_name)):
             status.append('pending')
             
         if(message_inp_box== ''):
             message=[]
-            for (rm,per,un,date,amt,due,rem) in zip(raw_message,performa,user_name,invoice_date,amount,due_date,remark):
-                message.append(rm.replace(' ', '%20').replace('\n', '%0D%0A').replace('+', '%2B').replace('&','%26')
-                                    .replace('[Client%20Name]', un).replace('[Performa%20Invoice%20No.]',per)
-                                    .replace('[Invoice%20Date]',date).replace('[Amount]',amt).replace('[Due%20Date]',due)
-                                    .replace('[Remark]',rem))
+            for (r, x) in zip(raw_message,user_name):
+                message.append(r.replace(' ', '%20').replace('\n', '%0D%0A').replace('+', '%2B').replace('NAME', x).replace('&','%26'))
                 #print(message)
 
         else:
             msg1 = message_inp_box.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B')
-
-                                    
             message = []
-            for (per,un,date,amt,due,rem) in zip(performa,user_name,invoice_date,amount,due_date,remark):
-                message.append(msg1.replace('[Performa%20Invoice%20No.]',per).replace('[Client%20Name]', un)
-                                    .replace('[Invoice%20Date]',date).replace('[Amount]',amt).replace('[Due%20Date]',due)
-                                    .replace('[Remark]',rem))
+            for x in user_name:
+                message.append(msg1.replace('NAME', x))
                 #print(message)          
 
 
@@ -348,7 +316,7 @@ class Ui_MainWindow(object):
             browser.get(link)
             try:
                 time.sleep(8)
-                wait_try = WebDriverWait(browser, 60).until(
+                wait_try = WebDriverWait(browser, 45).until(
                     EC.presence_of_element_located((By.ID, "pane-side")))
                 print("Page is ready!")
                 send = browser.find_element_by_xpath("//span[@data-testid='send']")
@@ -411,8 +379,6 @@ class Ui_MainWindow(object):
 
             time.sleep(5)
             whatsapp_send_button = browser.find_element_by_xpath('//span[@data-testid="send"]')
-            element = WebDriverWait(browser, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//span[@data-testid='send']")))
             whatsapp_send_button.click()
             time.sleep(1)
         
@@ -439,8 +405,6 @@ class Ui_MainWindow(object):
             
             time.sleep(5)
             whatsapp_send_button = browser.find_element_by_xpath('//span[@data-testid="send"]')
-            element = WebDriverWait(browser, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//span[@data-testid='send']")))
             whatsapp_send_button.click()
             time.sleep(1)
               
