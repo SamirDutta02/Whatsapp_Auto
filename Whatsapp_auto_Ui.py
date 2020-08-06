@@ -32,6 +32,8 @@ Link = "https://web.whatsapp.com/"
 wait = None
 element = None
 wait_try = None
+doc_wait=None
+img_wait=None
 doc_send = ''
 img_send= ''
 not_sent_contacts=[]
@@ -193,7 +195,6 @@ class Ui_MainWindow(object):
         self.Import_excel.setText(_translate("MainWindow", "Import Excel"))
         self.Send_now.setText(_translate("MainWindow", "SEND >"))
         self.Submit.setText(_translate("MainWindow", "Set Time"))
-        #self.Schedule_btn.setText(_translate("MainWindow", "Schedule"))
         self.Schedule_msg.setText(_translate("MainWindow", "Schedule Message"))
         self.Select_IMG.setText(_translate("MainWindow", "Select IMG"))
         self.select_PDF.setText(_translate("MainWindow", "Select PDF"))
@@ -284,6 +285,8 @@ class Ui_MainWindow(object):
         raw_message = list(df1.loc[row_head:row_tail, 'Message'])
         
         
+        
+        
         performa=[]
         for per in raw_performa:
             performa.append(per.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
@@ -297,16 +300,19 @@ class Ui_MainWindow(object):
             unsaved_Contacts.append(names.replace(' ', '').replace('+', ''))
                                            
         invoice_date=[]
-        for date in raw_invoice_date:
-            invoice_date.append(date.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
-
+        for id in raw_invoice_date:
+            invoice_date.append(id .replace(' 00:00:00','').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B')
+                                   .replace(' ', '%20'))
+    
+        
         amount=[]
         for amt in raw_amount:
             amount.append(amt.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
         
         due_date=[]
         for due in raw_due_date:
-            due_date.append(due.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+            due_date.append(due.replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B').replace(' 00:00:00','')
+                                .replace(' ', '%20'))
         
         remark=[]
         for rem in raw_remark:
@@ -318,10 +324,10 @@ class Ui_MainWindow(object):
             
         if(message_inp_box== ''):
             message=[]
-            for (rm,per,un,date,amt,due,rem) in zip(raw_message,performa,user_name,invoice_date,amount,due_date,remark):
+            for (rm,per,un,id,amt,due,rem) in zip(raw_message,performa,user_name,invoice_date,amount,due_date,remark):
                 message.append(rm.replace(' ', '%20').replace('\n', '%0D%0A').replace('+', '%2B').replace('&','%26')
                                     .replace('[Client%20Name]', un).replace('[Performa%20Invoice%20No.]',per)
-                                    .replace('[Invoice%20Date]',date).replace('[Amount]',amt).replace('[Due%20Date]',due)
+                                    .replace('[Invoice%20Date]',id).replace('[Amount]',amt).replace('[Due%20Date]',due)
                                     .replace('[Remark]',rem))
                 #print(message)
 
@@ -330,9 +336,9 @@ class Ui_MainWindow(object):
 
                                     
             message = []
-            for (per,un,date,amt,due,rem) in zip(performa,user_name,invoice_date,amount,due_date,remark):
+            for (per,un,id,amt,due,rem) in zip(performa,user_name,invoice_date,amount,due_date,remark):
                 message.append(msg1.replace('[Performa%20Invoice%20No.]',per).replace('[Client%20Name]', un)
-                                    .replace('[Invoice%20Date]',date).replace('[Amount]',amt).replace('[Due%20Date]',due)
+                                    .replace('[Invoice%20Date]',id).replace('[Amount]',amt).replace('[Due%20Date]',due)
                                     .replace('[Remark]',rem))
                 #print(message)          
 
@@ -390,7 +396,7 @@ class Ui_MainWindow(object):
                 time.sleep(1)
         
         def send_img():
-            global imgname
+            global imgname,img_wait
 
             clipButton = browser.find_element_by_xpath('//*[@id="main"]/header/div[3]/div/div[2]/div/span')
             clipButton.click()
@@ -411,14 +417,14 @@ class Ui_MainWindow(object):
 
             time.sleep(5)
             whatsapp_send_button = browser.find_element_by_xpath('//span[@data-testid="send"]')
-            element = WebDriverWait(browser, 20).until(
+            img_wait = WebDriverWait(browser, 15).until(
                 EC.presence_of_element_located((By.XPATH, "//span[@data-testid='send']")))
             whatsapp_send_button.click()
             time.sleep(1)
         
         
         def send_doc():
-            global doc_filename
+            global doc_filename,doc_wait
             clipButton = browser.find_element_by_xpath('//*[@id="main"]/header/div[3]/div/div[2]/div/span')
             clipButton.click()
             time.sleep(1)
@@ -437,12 +443,12 @@ class Ui_MainWindow(object):
             time.sleep(1)
             autoit.control_click("Open", "Button1")
             
-            time.sleep(5)
+            time.sleep(4)
             whatsapp_send_button = browser.find_element_by_xpath('//span[@data-testid="send"]')
-            element = WebDriverWait(browser, 20).until(
+            doc_wait = WebDriverWait(browser, 15).until(
                 EC.presence_of_element_located((By.XPATH, "//span[@data-testid='send']")))
             whatsapp_send_button.click()
-            time.sleep(1)
+            time.sleep(5)
               
         
         def sender():
