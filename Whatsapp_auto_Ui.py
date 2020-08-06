@@ -360,7 +360,7 @@ class Ui_MainWindow(object):
                 time.sleep(1)
         
         def send_img():
-            global imgname
+            global imgname, img_wait
 
             clipButton = browser.find_element_by_xpath('//*[@id="main"]/header/div[3]/div/div[2]/div/span')
             clipButton.click()
@@ -388,7 +388,7 @@ class Ui_MainWindow(object):
         
         
         def send_doc():
-            global doc_filename
+            global doc_filename,doc_wait
             clipButton = browser.find_element_by_xpath('//*[@id="main"]/header/div[3]/div/div[2]/div/span')
             clipButton.click()
             time.sleep(1)
