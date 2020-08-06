@@ -2,6 +2,8 @@ import schedule
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog,QTimeEdit
 import pandas as pd
+import xlrd
+from xlrd import XLRDError
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -42,7 +44,7 @@ Schedule_msg =''
 num = 0
 row_head = 0
 row_tail = 150
-date_time = datetime.datetime.now().strftime("%d.%m.%y")
+date_time = datetime.datetime.now().strftime("%H.%M.%S")
 
 
 
@@ -260,49 +262,79 @@ class Ui_MainWindow(object):
         global message_inp_box,unsaved_Contacts,message,raw_user_name
         row_head=self.row_head_inp.value()
         row_tail=self.row_tail_inp.value()
+        if (row_tail-row_head > 150):
+            self.Excel_selected.setText("Max 150 Rows")
+            return 
+        
         print('Import Excel')
         path = QFileDialog.getOpenFileName()
         file_path = path[0]
         print(file_path)
-        
-        if (row_tail-row_head > 150):
-            self.Excel_selected.setText("Max 150 Rows")
-            return
-        
-
-        df1 = pd.read_excel(file_path)
-        raw_user_name=list(df1.loc[row_head:row_tail, 'Names'])
-        print(raw_user_name)
-        raw_unsaved_Contacts = list(df1.loc[row_head:row_tail, 'Contact'])
-        str_unsaved_Contacts = map(str, raw_unsaved_Contacts)
-        unsaved_Contacts=[]
-        for names in str_unsaved_Contacts:
-            unsaved_Contacts.append(names.replace(' ', '').replace('-', '').replace('+', ''))
-        raw_message = list(df1.loc[row_head:row_tail, 'Message'])
-        
-        user_name=[]
-        for s in raw_user_name:
-            user_name.append(s.replace(' ', '%20').replace('&','%26').replace('?', '%3F'))
-
         self.Excel_selected.setText("     Excel Selected")
 
+        #read data from excel
+        df1 = pd.read_excel(file_path,na_filter= False,dtype=str)
+        raw_performa = list(df1.loc[row_head:row_tail, 'Performa Invoice No.'])
+        raw_user_name  =list(df1.loc[row_head:row_tail, 'Client Name'])
+        raw_unsaved_Contacts = list(df1.loc[row_head:row_tail, 'Contact No.'])
+        raw_invoice_date = list(df1.loc[row_head:row_tail, 'Invoice Date'])
+        raw_amount = list(df1.loc[row_head:row_tail, 'Amount'])
+        raw_due_date = list(df1.loc[row_head:row_tail, 'Due Date'])
+        raw_remark = list(df1.loc[row_head:row_tail, 'Remark'])
+        raw_message = list(df1.loc[row_head:row_tail, 'Message'])
+        
+        
+        performa=[]
+        for per in raw_performa:
+            performa.append(per.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+
+        user_name=[]
+        for un in raw_user_name:
+            user_name.append(un.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+        
+        unsaved_Contacts=[]
+        for names in raw_unsaved_Contacts:
+            unsaved_Contacts.append(names.replace(' ', '').replace('+', ''))
+                                           
+        invoice_date=[]
+        for date in raw_invoice_date:
+            invoice_date.append(date.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+
+        amount=[]
+        for amt in raw_amount:
+            amount.append(amt.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+        
+        due_date=[]
+        for due in raw_due_date:
+            due_date.append(due.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+        
+        remark=[]
+        for rem in raw_remark:
+            remark.append(rem.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
+        
+        #report work
         for n in range (0,len(user_name)):
             status.append('pending')
             
         if(message_inp_box== ''):
             message=[]
-            for (r, x) in zip(raw_message,user_name):
-                message.append(r.replace(' ', '%20').replace('\n', '%0D%0A').replace('NAME', x).replace('&','%26').replace('?', '%3F'))
+            for (rm,per,un,date,amt,due,rem) in zip(raw_message,performa,user_name,invoice_date,amount,due_date,remark):
+                message.append(rm.replace(' ', '%20').replace('\n', '%0D%0A').replace('+', '%2B').replace('&','%26')
+                                    .replace('[Client%20Name]', un).replace('[Performa%20Invoice%20No.]',per)
+                                    .replace('[Invoice%20Date]',date).replace('[Amount]',amt).replace('[Due%20Date]',due)
+                                    .replace('[Remark]',rem))
                 #print(message)
-            return unsaved_Contacts, message, user_name
 
         else:
-            msg1 = message_inp_box.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('?', '%3F')
+            msg1 = message_inp_box.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B')
+
+                                    
             message = []
-            for x in user_name:
-                message.append(msg1.replace('NAME', x))
-                #print(message)
-            return unsaved_Contacts, message, user_name
+            for (per,un,date,amt,due,rem) in zip(performa,user_name,invoice_date,amount,due_date,remark):
+                message.append(msg1.replace('[Performa%20Invoice%20No.]',per).replace('[Client%20Name]', un)
+                                    .replace('[Invoice%20Date]',date).replace('[Amount]',amt).replace('[Due%20Date]',due)
+                                    .replace('[Remark]',rem))
+                #print(message)          
 
 
 
@@ -316,7 +348,7 @@ class Ui_MainWindow(object):
             browser.get(link)
             try:
                 time.sleep(8)
-                wait_try = WebDriverWait(browser, 45).until(
+                wait_try = WebDriverWait(browser, 60).until(
                     EC.presence_of_element_located((By.ID, "pane-side")))
                 print("Page is ready!")
                 send = browser.find_element_by_xpath("//span[@data-testid='send']")
@@ -342,7 +374,7 @@ class Ui_MainWindow(object):
             chrome_options.add_argument('--user-data-dir=./User_Data')
             browser = webdriver.Chrome(executable_path=chrome_path, options=chrome_options)
             browser.get(Link)
-            wait = WebDriverWait(browser, 90).until(
+            wait = WebDriverWait(browser, 120).until(
                             EC.presence_of_element_located((By.ID, "pane-side")))
             browser.maximize_window()
             print("QR scanned")
@@ -418,11 +450,19 @@ class Ui_MainWindow(object):
                     print(link)
                     browser.get(link)
                     try:
-                        time.sleep(5)
-                        element = WebDriverWait(browser, 30).until(
-                            EC.presence_of_element_located((By.ID, "pane-side")))
-                        print("Page is ready!")
-                        send_unsaved_contact_message()
+                        time.sleep(7)
+                        if((img_send=='yes') or (doc_send=='yes')):
+
+                            element = WebDriverWait(browser, 65).until(
+                                EC.presence_of_element_located((By.XPATH, "//span[@data-testid='send']")))
+                            send_unsaved_contact_message()
+                            print("Page is ready!")
+                        else:
+                            element = WebDriverWait(browser, 30).until(
+                                EC.presence_of_element_located((By.XPATH, "//span[@data-testid='send']")))
+                            send_unsaved_contact_message()
+                            print("Page is ready!")
+
 
                         if ((img_send=='yes') and (doc_send=='')):
                             print('sending img')
@@ -496,16 +536,13 @@ class Ui_MainWindow(object):
                 scheduler()
                 print(not_sent_contacts)
                 print("Task Completed")
-                time.sleep(3)
-                browser.quit()
                 #self.Task_completed.setText('Task Completed')
 
             else:
                 sender()
                 print(not_sent_contacts)
                 print("Task Completed")
-                time.sleep(3)
-                browser.quit()
+                
             
                 #self.Task_completed.setText('Task Completed')
         first_func()
