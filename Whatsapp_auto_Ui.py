@@ -32,6 +32,8 @@ Link = "https://web.whatsapp.com/"
 wait = None
 element = None
 wait_try = None
+doc_wait=None
+img_wait=None
 doc_send = ''
 img_send= ''
 not_sent_contacts=[]
@@ -377,10 +379,12 @@ class Ui_MainWindow(object):
             time.sleep(1)
             autoit.control_click("Open", "Button1")
 
-            time.sleep(5)
+            time.sleep(3)
             whatsapp_send_button = browser.find_element_by_xpath('//span[@data-testid="send"]')
+            img_wait = WebDriverWait(browser, 15).until(
+                EC.presence_of_element_located((By.XPATH, "//span[@data-testid='send']")))
             whatsapp_send_button.click()
-            time.sleep(1)
+            time.sleep(3)
         
         
         def send_doc():
@@ -403,10 +407,12 @@ class Ui_MainWindow(object):
             time.sleep(1)
             autoit.control_click("Open", "Button1")
             
-            time.sleep(5)
+            time.sleep(3)
             whatsapp_send_button = browser.find_element_by_xpath('//span[@data-testid="send"]')
+            doc_wait = WebDriverWait(browser, 15).until(
+                EC.presence_of_element_located((By.XPATH, "//span[@data-testid='send']")))
             whatsapp_send_button.click()
-            time.sleep(1)
+            time.sleep(5)
               
         
         def sender():
