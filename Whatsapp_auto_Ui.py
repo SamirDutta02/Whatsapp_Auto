@@ -275,7 +275,7 @@ class Ui_MainWindow(object):
         self.Excel_selected.setText("     Excel Selected")
 
         #read data from excel
-        df1 = pd.read_excel(file_path,na_filter= False,dtype=str)
+        df1 = pd.read_excel(file_path,na_filter= False)
         raw_performa = list(df1.loc[row_head:row_tail, 'Performa Invoice No.'])
         raw_user_name  =list(df1.loc[row_head:row_tail, 'Client Name'])
         raw_unsaved_Contacts = list(df1.loc[row_head:row_tail, 'Contact No.'])
@@ -285,11 +285,13 @@ class Ui_MainWindow(object):
         raw_remark = list(df1.loc[row_head:row_tail, 'Remark'])
         raw_message = list(df1.loc[row_head:row_tail, 'Message'])
         
-        
+        str_unsaved_Contacts = map(str, raw_unsaved_Contacts)
+        str_performa_invoice = map(str, raw_performa)
+        str_amount = map(str, raw_amount)
         
         
         performa=[]
-        for per in raw_performa:
+        for per in str_performa_invoice:
             performa.append(per.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
 
         user_name=[]
@@ -297,24 +299,22 @@ class Ui_MainWindow(object):
             user_name.append(un.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
         
         unsaved_Contacts=[]
-        for names in raw_unsaved_Contacts:
+        for names in str_unsaved_Contacts:
             unsaved_Contacts.append(names.replace(' ', '').replace('+', ''))
                                            
         invoice_date=[]
         for id in raw_invoice_date:
-            invoice_date.append(id .replace(' 00:00:00','').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B')
-                                   .replace(' ', '%20'))
-    
+            invoice_date.append(id.strftime("%d-%m-%Y"))
+        print(invoice_date)
         
         amount=[]
-        for amt in raw_amount:
+        for amt in str_amount:
             amount.append(amt.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
         
         due_date=[]
         for due in raw_due_date:
-            due_date.append(due.replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B').replace(' 00:00:00','')
-                                .replace(' ', '%20'))
-        
+            due_date.append(due.strftime("%d-%m-%Y"))
+            print(due_date)
         remark=[]
         for rem in raw_remark:
             remark.append(rem.replace(' ', '%20').replace('\n', '%0D%0A').replace('&','%26').replace('+', '%2B'))
